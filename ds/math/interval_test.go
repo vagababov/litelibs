@@ -4,11 +4,12 @@ import (
 	"testing"
 )
 
-func Test(t *testing.T) {
-	tests := struct {
+func TestIntersects(t *testing.T) {
+	tests := []struct {
 		f, s *Interval
-		want bool }{
-			{
+		want bool
+	}{
+		{
 			NewClosed(1, 2),
 			NewClosed(2, 3),
 			true,
@@ -24,18 +25,18 @@ func Test(t *testing.T) {
 			false,
 		},
 		{
-			New(1,2, true, false),
-			New(2, 3, true, false),
+			NewInterval(1, 2, true, false),
+			NewInterval(2, 3, true, false),
 			false,
 		},
 		{
-			New(1,2, false, true),
-			New(2, 3, true, false),
+			NewInterval(1, 2, false, true),
+			NewInterval(2, 3, true, false),
 			true,
 		},
 		{
-			New(2, 5, true, false),
-			New(3, 4, false, false),
+			NewInterval(2, 5, true, false),
+			NewInterval(3, 4, false, false),
 			true,
 		},
 	}
@@ -45,6 +46,72 @@ func Test(t *testing.T) {
 		}
 		if got, want := test.s.Intersects(test.f), test.want; got != want {
 			t.Errorf("%v ∩ %v: got: %v want: %v", test.s, test.f, got, want)
+		}
+	}
+}
+
+func TestValid(t *testing.T) {
+	tests := []struct {
+		i    *Interval
+		want bool
+	}{
+		{
+			NewClosed(2, 1),
+			false,
+		},
+		{
+			NewOpen(1, 2),
+			true,
+		},
+		{
+			NewOpen(1, 1),
+			true,
+		},
+		{
+			NewClosed(1, 1),
+			true,
+		},
+	}
+	for _, test := range tests {
+		if got, want := test.i.Valid(), test.want; got != want {
+			t.Errorf("%v.Valid: got: %v want: %v", test.i, got, want)
+		}
+		test.i.Fix()
+		if got, want := test.i.Valid(), true; got != want {
+			t.Errorf("%v.Valid: got: %v want: %v", test.i, got, want)
+		}
+	}
+}
+
+func TestEmpty(t *testing.T) {
+	tests := []struct {
+		i    *Interval
+		want bool
+	}{
+		{
+			NewOpen(1, 1),
+			true,
+		},
+		{
+			NewClosed(1, 1),
+			false,
+		},
+		{
+			NewInterval(1, 1, true, false),
+			false,
+		},
+		{
+			NewInterval(1, 1, false, true),
+			false,
+		},
+		{
+			NewOpen(1, 2),
+			false,
+		},
+	}
+	for _, test := range tests {
+		if got, want := test.i.Empty(), test.want; got != want {
+			t.Errorf("%v.Empty: got: %v want: %v", test.i, got, want)
 		}
 	}
 }
